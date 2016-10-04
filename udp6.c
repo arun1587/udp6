@@ -52,7 +52,6 @@ uint16_t udp6_checksum (struct ip6_hdr, struct udphdr, uint8_t *, int);
 char *allocate_strmem (int);
 uint8_t *allocate_ustrmem (int);
 
-
 int Stest(struct Foo f) {
 	printf("\nStest arg 1 %d\n", f.a);
 	printf("Stest arg 2 %s\n", f.b);
@@ -121,6 +120,7 @@ int V6Send(struct Ipv6 ip6, char *pdst_mac, struct Udp u)
 
 	// Set destination MAC address: you need to fill these out
 	sscanf(pdst_mac, "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx", &dst_mac[0], &dst_mac[1], &dst_mac[2], &dst_mac[3], &dst_mac[4], &dst_mac[5]);
+
 	printf ("Destination MAC address for interface");
 	for (i = 0; i < 5; i++) {
 		printf ("%02x:", dst_mac[i]);
