@@ -9,11 +9,6 @@ struct Ipv6 {
 	char *dst;
 };
 
-struct Foo {
-	int a;
-	char *b;
-};
-
 struct Udp {
 	unsigned short esport;
 	unsigned short lcport;
@@ -21,5 +16,4 @@ struct Udp {
 	unsigned short checksum;
 };
 
-extern int Stest(struct Foo f);
-extern int V6Send(struct Ipv6 ip6, char *pdst_mac, struct Udp u);
+extern int V6Send(char *pdst_mac, struct Ipv6 ip6, struct Udp u, char *data, int datalen, char *inf);

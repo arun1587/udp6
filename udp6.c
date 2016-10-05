@@ -47,24 +47,18 @@
 #define UDP_HDRLEN  8  // UDP header length, excludes data
 
 // Function prototypes
-uint16_t checksum (uint16_t *, int);
-uint16_t udp6_checksum (struct ip6_hdr, struct udphdr, uint8_t *, int);
+//uint16_t checksum (uint16_t *, int);
+//uint16_t udp6_checksum (struct ip6_hdr, struct udphdr, uint8_t *, int);
 char *allocate_strmem (int);
 uint8_t *allocate_ustrmem (int);
 
-int Stest(struct Foo f) {
-	printf("\nStest arg 1 %d\n", f.a);
-	printf("Stest arg 2 %s\n", f.b);
-	return (EXIT_SUCCESS);
-}
 
-int V6Send(struct Ipv6 ip6, char *pdst_mac, struct Udp u)
-{
-	int i, status, datalen, frame_length, sd, bytes;
+int V6Send(char *pdst_mac, struct Ipv6 ip6, struct Udp u, char *data, int datalen, char *inf) {
+	int i, status, frame_length, sd, bytes;
 	char *interface, *target, *src_ip, *dst_ip;
 	struct ip6_hdr iphdr;
 	struct udphdr udphdr;
-	uint8_t *data, *src_mac, *dst_mac, *ether_frame;
+	uint8_t *src_mac, *dst_mac, *ether_frame;
 	struct addrinfo hints, *res;
 	struct sockaddr_in6 *ipv6;
 	struct sockaddr_ll device;
@@ -74,7 +68,7 @@ int V6Send(struct Ipv6 ip6, char *pdst_mac, struct Udp u)
 	// Allocate memory for various arrays.
 	src_mac = allocate_ustrmem (6);
 	dst_mac = allocate_ustrmem (6);
-	data = allocate_ustrmem (IP_MAXPACKET);
+	//data = allocate_ustrmem (IP_MAXPACKET);
 	ether_frame = allocate_ustrmem (IP_MAXPACKET);
 	interface = allocate_strmem (40);
 	target = allocate_strmem (INET6_ADDRSTRLEN);
@@ -82,7 +76,7 @@ int V6Send(struct Ipv6 ip6, char *pdst_mac, struct Udp u)
 	dst_ip = allocate_strmem (INET6_ADDRSTRLEN);
 
 	// Interface to send packet through.
-	strcpy (interface, "wlan0");
+	strcpy (interface, inf);
 
 	// Submit request for a socket descriptor to look up interface.
 	if ((sd = socket (PF_PACKET, SOCK_RAW, htons (ETH_P_ALL))) < 0) {
@@ -121,18 +115,16 @@ int V6Send(struct Ipv6 ip6, char *pdst_mac, struct Udp u)
 	// Set destination MAC address: you need to fill these out
 	sscanf(pdst_mac, "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx", &dst_mac[0], &dst_mac[1], &dst_mac[2], &dst_mac[3], &dst_mac[4], &dst_mac[5]);
 
-	printf ("Destination MAC address for interface");
+	printf ("Destination MAC address ");
 	for (i = 0; i < 5; i++) {
 		printf ("%02x:", dst_mac[i]);
 	}
 	printf ("%02x\n", dst_mac[5]);
 
 	// Source IPv6 address: you need to fill this out
-	//strcpy (src_ip, "2001:face::6cf2:65e:bd1b:a532");
 	strcpy (src_ip, ip6.src);
 
 	// Destination URL or IPv6 address: you need to fill this out
-	//strcpy (target, "2001:face::1acf:5eff:fe37:d8a9");
 	strcpy (target, ip6.dst);
 
 	// Fill out hints for getaddrinfo().
@@ -160,16 +152,9 @@ int V6Send(struct Ipv6 ip6, char *pdst_mac, struct Udp u)
 	memcpy (device.sll_addr, src_mac, 6 * sizeof (uint8_t));
 	device.sll_halen = 6;
 
-	// UDP data
-	datalen = 4;
-	data[0] = 'T';
-	data[1] = 'e';
-	data[2] = 's';
-	data[3] = 't';
-
 	// IPv6 header
 	iphdr.ip6_flow = htonl ((6 << 28) | (0 << 20) | 0);
-	iphdr.ip6_plen = htons (UDP_HDRLEN + datalen);
+	iphdr.ip6_plen = htons (ip6.payloadLen);
 	iphdr.ip6_nxt = ip6.nextHeader;
 	iphdr.ip6_hops = ip6.hopLimit;
 	// Source IPv6 address (128 bits)
@@ -186,10 +171,10 @@ int V6Send(struct Ipv6 ip6, char *pdst_mac, struct Udp u)
 	// UDP Header
 	udphdr.source = htons(u.esport);
 	udphdr.dest = htons(u.lcport);
-	udphdr.len = htons (UDP_HDRLEN + datalen);
-	//udphdr.check = htons(u.checksum);
-	udphdr.check = udp6_checksum (iphdr, udphdr, data, datalen);
-	
+	udphdr.len = htons (u.length);
+	udphdr.check = htons(u.checksum);
+	//udphdr.check = udp6_checksum (iphdr, udphdr, data, datalen);
+
 	// Fill out ethernet frame header.
 	// Ethernet frame length = ethernet header (MAC + MAC + ethernet type) + ethernet data (IP header + UDP header + UDP data)
 	frame_length = 6 + 6 + 2 + IP6_HDRLEN + UDP_HDRLEN + datalen;
@@ -248,6 +233,7 @@ int V6Send(struct Ipv6 ip6, char *pdst_mac, struct Udp u)
 	return (EXIT_SUCCESS);
 }
 
+/*
 // Computing the internet checksum (RFC 1071).
 // Note that the internet checksum does not preclude collisions.
 uint16_t
@@ -353,7 +339,7 @@ udp6_checksum (struct ip6_hdr iphdr, struct udphdr udphdr, uint8_t *payload, int
 
 	return checksum ((uint16_t *) buf, chksumlen);
 }
-
+*/
 // Allocate memory for an array of chars.
 char *
 allocate_strmem (int len)
