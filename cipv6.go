@@ -8,24 +8,6 @@ package main
 */
 import "C" //no blank line between the bulk comment and this line
 
-type IPHeader struct {
-	Version    uint8  // protocol version
-	DiffServ   uint8  // traffic class
-	FlowLabel  uint32 // flow label
-	PayloadLen uint16 // payload length
-	NextHeader uint8  // next header
-	HopLimit   uint8  // hop limit
-	Src        string // Source IPv6 Address
-	Dst        string // Destination IPv6 Address
-}
-
-type UDPHeader struct {
-	ESPort   uint16
-	LCPort   uint16
-	Length   uint16
-	Checksum uint16
-}
-
 func main() {
 	// Sample structure
 	ci := C.int(8)
